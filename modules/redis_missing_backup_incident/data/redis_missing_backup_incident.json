@@ -1,0 +1,130 @@
+{
+  "name": "redis_missing_backup_incident",
+  "description": "The Redis missing backup incident refers to a situation where Redis, a popular in-memory data structure store, has not been backed up for a certain period of time. This could lead to data loss or corruption in the event of a system failure or other issues. The incident typically requires immediate attention to ensure that the data is properly backed up and that any potential issues are resolved quickly to avoid further complications.",
+  "params": [
+    {
+      "name": "BACKUP_DIRECTORY",
+      "value": ""
+    },
+    {
+      "name": "BACKUP_FILENAME",
+      "value": ""
+    },
+    {
+      "name": "PATH_TO_REDIS_RDB",
+      "value": ""
+    },
+    {
+      "name": "REDIS_HOST",
+      "value": ""
+    },
+    {
+      "name": "REDIS_BACKUP_FILE",
+      "value": ""
+    },
+    {
+      "name": "HOST_NAME",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Redis missing backup incident.\nThe Redis missing backup incident refers to a situation where Redis, a popular in-memory data structure store, has not been backed up for a certain period of time. This could lead to data loss or corruption in the event of a system failure or other issues. The incident typically requires immediate attention to ensure that the data is properly backed up and that any potential issues are resolved quickly to avoid further complications."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if Redis is running on the instance"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo systemctl status redis-server.service`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if Redis backup is enabled in the Redis configuration file"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo grep -i save /etc/redis/redis.conf`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the size of Redis RDB file"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo du -sh ${PATH_TO_REDIS_RDB}`"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if Redis backup script is scheduled to run"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo crontab -l | grep redis-backup.sh`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if the Redis backup script is running correctly"
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo tail -f /var/log/syslog | grep redis-backup.sh`"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Backup failure: If the backup process fails for any reason, Redis may not be properly backed up. This could be due to issues with the backup software, connectivity issues, or other technical issues."
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_check_redis_backup($BACKUP_DIRECTORY, $BACKUP_FILENAME, $REDIS_HOST)"
+    },
+    {
+      "name": "cell_14",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## commands to force redis to generate a new backup"
+    },
+    {
+      "name": "cell_15",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_redis_backup_rename($REDIS_BACKUP_FILE)"
+    }
+  ]
+}
